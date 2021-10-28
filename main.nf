@@ -39,38 +39,86 @@ Channel
     .set { ch_input }
 
 // Define Process
-process step_1 {
-    tag "$sample_name"
-    label 'low_memory'
-    publishDir "${params.outdir}", mode: 'copy'
+
+
+// STEP MANTA - SOMATIC PAIR
+process manta {
+    label 'cpus_max'
+    label 'memory_max'
+
+    tag "${idSampleTumor}_vs_${idSampleNormal}"
+
+    publishDir "${params.outdir}/VariantCalling/${idSampleTumor}_vs_${idSampleNormal}/Manta", mode: params.publish_dir_mode
 
     input:
-    set val(sample_name), file(input_file) from ch_input
-    file(run_sh_script) from ch_run_sh_script
-    
+        set idPatient, idSampleNormal, file(bamNormal), file(baiNormal), idSampleTumor, file(bamTumor), file(baiTumor) from pairBamManta
+        file(fasta) from ch_fasta
+        file(fastaFai) from ch_fai
+
     output:
-    file "input_file_head.txt" into ch_out
+        set val("Manta"), idPatient, val("${idSampleTumor}_vs_${idSampleNormal}"), file("*.vcf.gz"), file("*.vcf.gz.tbi") into vcfManta
+        set idPatient, idSampleNormal, idSampleTumor, file("*.candidateSmallIndels.vcf.gz"), file("*.candidateSmallIndels.vcf.gz.tbi") into mantaToStrelka
 
     script:
     """
-    run.sh
-    head $input_file > input_file_head.txt
+    configManta.py \
+        --normalBam ${bamNormal} \
+        --tumorBam ${bamTumor} \
+        --reference ${fasta} \
+        --runDir Manta
+    python Manta/runWorkflow.py -m local -j ${task.cpus}
+    mv Manta/results/variants/candidateSmallIndels.vcf.gz \
+        Manta_${idSampleTumor}_vs_${idSampleNormal}.candidateSmallIndels.vcf.gz
+    mv Manta/results/variants/candidateSmallIndels.vcf.gz.tbi \
+        Manta_${idSampleTumor}_vs_${idSampleNormal}.candidateSmallIndels.vcf.gz.tbi
+    mv Manta/results/variants/candidateSV.vcf.gz \
+        Manta_${idSampleTumor}_vs_${idSampleNormal}.candidateSV.vcf.gz
+    mv Manta/results/variants/candidateSV.vcf.gz.tbi \
+        Manta_${idSampleTumor}_vs_${idSampleNormal}.candidateSV.vcf.gz.tbi
+    mv Manta/results/variants/diploidSV.vcf.gz \
+        Manta_${idSampleTumor}_vs_${idSampleNormal}.diploidSV.vcf.gz
+    mv Manta/results/variants/diploidSV.vcf.gz.tbi \
+        Manta_${idSampleTumor}_vs_${idSampleNormal}.diploidSV.vcf.gz.tbi
+    mv Manta/results/variants/somaticSV.vcf.gz \
+        Manta_${idSampleTumor}_vs_${idSampleNormal}.somaticSV.vcf.gz
+    mv Manta/results/variants/somaticSV.vcf.gz.tbi \
+        Manta_${idSampleTumor}_vs_${idSampleNormal}.somaticSV.vcf.gz.tbi
     """
-  }
+}
 
-process report {
-    publishDir "${params.outdir}/MultiQC", mode: 'copy'
+
+// STEP STRELKA - SOMATIC PAIR
+process strelka {
+    label 'cpus_max'
+    label 'memory_max'
+
+    tag "${idSampleTumor}_vs_${idSampleNormal}"
+
+    publishDir "${params.outdir}/VariantCalling/${idSampleTumor}_vs_${idSampleNormal}/Strelka", mode: params.publish_dir_mode
 
     input:
-    file (table) from ch_out
-    
+        set idPatient, idSampleNormal, file(bamNormal), file(baiNormal), idSampleTumor, file(bamTumor), file(baiTumor) from pairBamStrelka
+        file(fasta) from ch_fasta
+        file(fastaFai) from ch_fai
+
     output:
-    file "multiqc_report.html" into ch_multiqc_report
+        set val("Strelka"), idPatient, val("${idSampleTumor}_vs_${idSampleNormal}"), file("*.vcf.gz"), file("*.vcf.gz.tbi") into vcfStrelka
 
     script:
     """
-    cp -r ${params.report_dir}/* .
-    Rscript -e "rmarkdown::render('report.Rmd',params = list(res_table='$table'))"
-    mv report.html multiqc_report.html
+    configureStrelkaSomaticWorkflow.py \
+        --tumor ${bamTumor} \
+        --normal ${bamNormal} \
+        --referenceFasta ${fasta} \
+        --runDir Strelka
+    python Strelka/runWorkflow.py -m local -j ${task.cpus}
+    mv Strelka/results/variants/somatic.indels.vcf.gz \
+        Strelka_${idSampleTumor}_vs_${idSampleNormal}_somatic_indels.vcf.gz
+    mv Strelka/results/variants/somatic.indels.vcf.gz.tbi \
+        Strelka_${idSampleTumor}_vs_${idSampleNormal}_somatic_indels.vcf.gz.tbi
+    mv Strelka/results/variants/somatic.snvs.vcf.gz \
+        Strelka_${idSampleTumor}_vs_${idSampleNormal}_somatic_snvs.vcf.gz
+    mv Strelka/results/variants/somatic.snvs.vcf.gz.tbi \
+        Strelka_${idSampleTumor}_vs_${idSampleNormal}_somatic_snvs.vcf.gz.tbi
     """
 }

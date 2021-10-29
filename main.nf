@@ -28,27 +28,43 @@ if (params.help) {
 
 // Define channels from repository files
 projectDir = workflow.projectDir
-ch_run_sh_script = Channel.fromPath("${projectDir}/bin/run.sh")
 
 // Define Channels from input
 Channel
     .fromPath(params.input)
     .ifEmpty { exit 1, "Cannot find input file : ${params.input}" }
-    .splitCsv(skip:1)
-    .map {sample_name, file_path -> [ sample_name, file_path ] }
-    .set { ch_input }
+    .splitCsv(skip:1, by:2)
+    .map { row ->
+            def idPatient  = row[0][0]
+            if( row[0][2] == "N") {
+                idSampleNormal = row[0][1]
+                bamNormal = file(row[0][3])
+                baiNormal = file(row[0][4])
+                idSampleTumor = row[1][1]
+                bamTumor = file(row[1][3])
+                baiTumor = file(row[1][4])
+            } else {
+                idSampleNormal = row[1][1]
+                bamNormal = file(row[1][3])
+                baiNormal = file(row[1][4])
+                idSampleTumor = row[0][1]
+                bamTumor = file(row[0][3])
+                baiTumor = file(row[0][4])
+            }
+           [idPatient, idSampleNormal, bamNormal, baiNormal, idSampleTumor, bamTumor, baiTumor]
+        }
+    .into { pairBamManta; pairBamStrelka }
+
+ch_fasta = Channel.value(file(params.genome_fasta))
+ch_fai = Channel.value(file(params.genome_fasta_fai))
 
 // Define Process
 
 
 // STEP MANTA - SOMATIC PAIR
 process manta {
-    label 'cpus_max'
-    label 'memory_max'
-
     tag "${idSampleTumor}_vs_${idSampleNormal}"
-
-    publishDir "${params.outdir}/VariantCalling/${idSampleTumor}_vs_${idSampleNormal}/Manta", mode: params.publish_dir_mode
+    publishDir "${params.outdir}/VariantCalling/${idSampleTumor}_vs_${idSampleNormal}/Manta", mode: 'copy'
 
     input:
         set idPatient, idSampleNormal, file(bamNormal), file(baiNormal), idSampleTumor, file(bamTumor), file(baiTumor) from pairBamManta
@@ -89,12 +105,8 @@ process manta {
 
 // STEP STRELKA - SOMATIC PAIR
 process strelka {
-    label 'cpus_max'
-    label 'memory_max'
-
     tag "${idSampleTumor}_vs_${idSampleNormal}"
-
-    publishDir "${params.outdir}/VariantCalling/${idSampleTumor}_vs_${idSampleNormal}/Strelka", mode: params.publish_dir_mode
+    publishDir "${params.outdir}/VariantCalling/${idSampleTumor}_vs_${idSampleNormal}/Strelka", mode: 'copy'
 
     input:
         set idPatient, idSampleNormal, file(bamNormal), file(baiNormal), idSampleTumor, file(bamTumor), file(baiTumor) from pairBamStrelka

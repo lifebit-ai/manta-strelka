@@ -1,36 +1,14 @@
 ## Changelog
 
-PR centric changelog with description of notable changes implemented in a PR.
 
-### 0.0.0.9000
+### 0.0.1
 
-PR: https://github.com/<github-username>/<github-repo>/pull/1
+PR: https://github.com/lifebit-ai/manta-strelka-vc/pull/1
 
+First implementation of the `manta-strelka-vc` pipeline
 
-#### Added
+#### Adds
 
-<!-- 
-Example: 
-- Added Dockerfile 
--->
-
-#### Changed
-
-<!-- 
-Example:
-- Updated template ci.yml test
--->
-
-#### Fixed
-
-<!-- 
-Example:
-- Fixed bug xxx
--->
-
-#### Removed
-
-<!-- 
-Example:
-- Removed containers/ folder
--->
+- Nextflow pipeline and configuration files to run two processes:
+    * manta: a process to use the `manta` variant caller.
+    * strelka: a process to run the `strelka` variant caller.

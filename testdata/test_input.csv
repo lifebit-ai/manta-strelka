@@ -1,3 +1,0 @@
-patient_id,sample_id,tumor_normal,bam,bai
-pb,pb_normal,N,testdata/pb_normal.bam,testdata/pb_normal.bam.bai
-pb,pb_tumor,T,testdata/pb_tumor.bam,testdata/pb_tumor.bam.bai

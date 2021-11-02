@@ -7,9 +7,9 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        nxf_ver: ['20.01.0', '']
+        nxf_ver: ['20.01.0', '20.04.1', '']
     steps:
-      - uses: actions/checkout@v2.3.4
+      - uses: actions/checkout@v2.3.5
       - name: Install Nextflow
         run: |
           export NXF_VER=${{ matrix.nxf_ver }}

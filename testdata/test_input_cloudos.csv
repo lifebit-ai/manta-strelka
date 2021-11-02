@@ -1,0 +1,3 @@
+patient_id,sample_id,tumor_normal,bam,bai
+pb,pb_normal,N,s3://eu-west-1-example-data/nihr/testdata/pb_normal.bam,s3://eu-west-1-example-data/nihr/testdata/pb_normal.bam.bai
+pb,pb_tumor,T,s3://eu-west-1-example-data/nihr/testdata/pb_tumor.bam,s3://eu-west-1-example-data/nihr/testdata/pb_tumor.bam.bai

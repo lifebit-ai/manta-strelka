@@ -3,7 +3,7 @@
 
 ### 0.0.1
 
-PR: https://github.com/lifebit-ai/manta-strelka-vc/pull/1
+PR: https://github.com/lifebit-ai/manta-strelka-vc/pull/3
 
 First implementation of the `manta-strelka-vc` pipeline
 

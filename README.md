@@ -42,7 +42,7 @@ cd manta-strelka-vc
 Then, run the pipeline:
 
 ```
-nextflow main.nf --config conf/test.config -with-docker
+nextflow main.nf --config conf/test.config
 ```
 
 ### CloudOS tests

@@ -77,6 +77,8 @@ process manta {
 
     script:
     """
+    ${params.pre_script}
+
     configManta.py \
         --normalBam ${bamNormal} \
         --tumorBam ${bamTumor} \
@@ -118,6 +120,7 @@ process strelka {
 
     script:
     """
+    ${params.pre_script}
     configureStrelkaSomaticWorkflow.py \
         --tumor ${bamTumor} \
         --normal ${bamNormal} \

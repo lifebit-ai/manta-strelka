@@ -101,6 +101,8 @@ process manta {
         Manta_${idSampleTumor}_vs_${idSampleNormal}.somaticSV.vcf.gz
     mv Manta/results/variants/somaticSV.vcf.gz.tbi \
         Manta_${idSampleTumor}_vs_${idSampleNormal}.somaticSV.vcf.gz.tbi
+        
+    ${params.post_script}
     """
 }
 
@@ -135,5 +137,6 @@ process strelka {
         Strelka_${idSampleTumor}_vs_${idSampleNormal}_somatic_snvs.vcf.gz
     mv Strelka/results/variants/somatic.snvs.vcf.gz.tbi \
         Strelka_${idSampleTumor}_vs_${idSampleNormal}_somatic_snvs.vcf.gz.tbi
+    ${params.post_script}
     """
 }
